@@ -1,11 +1,10 @@
-# hoppr
+# Hoppr
 
-**The fast lane to your favorite projects.**  
-Save, open, and switch between codebases from anywhere in your terminal.
+**The fast lane to your favorite projects.** Save, open, and switch between codebases from anywhere in your terminal.
 
-## What is hoppr?
+## What is Hoppr?
 
-`hoppr` is a minimalist command-line tool that lets you save and open your favorite projects — from anywhere. No more digging through folders or copying paths. Just **hop** to your code.
+`Hoppr` is a minimalist command-line tool that lets you save and open your favorite projects — from anywhere. No more digging through folders or copying paths. Just **hop** to your code.
 
 Perfect for developers who work across multiple repos, microservices, or side projects and want speed without the clutter.
 
@@ -50,8 +49,6 @@ python install.py  # Or run setup script
 ```
 
 > Note: You’ll need Python 3.x installed.
-
----
 
 ## 📝 Configuration
 
