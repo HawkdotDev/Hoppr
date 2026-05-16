@@ -1,10 +1,10 @@
 # Hoppr
 
-**The fast lane to your favorite projects.** Save, open, and switch between codebases from anywhere in your terminal.
+**The fast lane to your favourite projects.** Save, open, and switch between codebases from anywhere in your terminal.
 
 ## What is Hoppr?
 
-`Hoppr` is a minimalist command-line tool that lets you save and open your favorite projects — from anywhere. No more digging through folders or copying paths. Just **hop** to your code.
+`Hoppr` is a minimalist command-line tool that lets you save and open your favourite projects — from anywhere. No more digging through folders or copying paths. Just **hop** to your code.
 
 Perfect for developers who work across multiple repos, microservices, or side projects and want speed without the clutter.
 
@@ -32,24 +32,6 @@ hoppr list
 hoppr remove myapp
 ```
 
-## Installation
-
-### Option 1: Using `pip` (Python-based version)
-
-```bash
-pip install hoppr
-```
-
-### Option 2: Clone and Run
-
-```bash
-git clone https://github.com/yourusername/hoppr.git
-cd hoppr
-python install.py  # Or run setup script
-```
-
-> Note: You’ll need Python 3.x installed.
-
 ## 📝 Configuration
 
 By default, `hoppr` stores your project paths in:
@@ -58,7 +40,7 @@ By default, `hoppr` stores your project paths in:
 ~/.hoppr/config.json
 ```
 
-You can customize:
+You can customise:
 
 * Default editor
 * Terminal command
@@ -84,9 +66,9 @@ Open an issue or submit a PR — contributions are welcome!
 
 ## Why Hoppr?
 
-Because you **hop** between your favorite projects — fast, smooth, and effortless.
+Because you **hop** between your favourite projects — fast, smooth, and effortless.
 Just like a dev-powered rabbit.
 
 ## License
 
-MIT License © \[Your Name or GitHub Handle]
+MIT License © \ HawkdotDev
