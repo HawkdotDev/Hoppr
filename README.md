@@ -1,10 +1,10 @@
 # Hoppr
 
-**The fast lane to your favourite projects.** Save, organise, and jump between codebases from anywhere in your terminal.
+**The fast lane to your favourite projects.** Save, organise, and hop between codebases from anywhere in your terminal.
 
 ## What is Hoppr?
 
-**Hoppr** is a minimalist CLI tool for developers who context-switch constantly. Save any directory as a named project, group projects into lists, and navigate your entire codebase landscape without ever touching a file picker. The command is `hop`.
+**Hoppr** is a minimalist CLI tool for developers who constantly context-switch. Save any directory as a named project, group projects into lists, and navigate your entire codebase landscape without ever touching a file picker. The command is `hop`.
 
 No more `cd ../../..` archaeology. Just hop.
 
