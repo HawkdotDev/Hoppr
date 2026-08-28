@@ -8,7 +8,7 @@ hop() {
     if [ "$#" -eq 1 ]; then
         if [[ ! " ${non_jump_cmds[*]} " =~ " $1 " ]]; then
             local target
-            target=$(command hoppr _get_path "$1" 2>/dev/null)
+            target=$(command hop _get_path "$1" 2>/dev/null)
             if [ -n "$target" ] && [ -d "$target" ]; then
                 cd "$target" || return
                 return 0
@@ -16,15 +16,14 @@ hop() {
         fi
     fi
 
-    command hoppr "$@"
+    command hop "$@"
 }
 
 # Dynamic Zsh Completion
 _hop_zsh_completions() {
     local -a suggestions
-    suggestions=(${(f)"$(command hoppr _complete "$words[CURRENT]" 2>/dev/null)"})
+    suggestions=(${(f)"$(command hop _complete "$words[CURRENT]" 2>/dev/null)"})
     _describe 'projects and lists' suggestions
 }
 
 compdef _hop_zsh_completions hop
-compdef _hop_zsh_completions hoppr

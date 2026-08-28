@@ -21,7 +21,7 @@ func main() {
 
 	switch os.Args[1] {
 	case "--version", "-v", "version":
-		fmt.Fprintf(os.Stdout, "hoppr version %s (commit: %s, built: %s)\n",
+		fmt.Fprintf(os.Stdout, "hop version %s (commit: %s, built: %s)\n",
 			ui.Bold(version.Version),
 			version.Commit,
 			version.BuildDate,

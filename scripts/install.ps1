@@ -9,7 +9,7 @@ Set-StrictMode -Version Latest
 
 # ── Constants ──────────────────────────────────────────────────────────────────
 $Repo        = "HawkdotDev/Hoppr"
-$BinName     = "hoppr.exe"
+$BinName     = "hop.exe"
 $InstallRoot = Join-Path $env:LOCALAPPDATA "Programs\Hoppr"
 $BinDir      = Join-Path $InstallRoot "bin"
 $ShellDir    = Join-Path $InstallRoot "shell"

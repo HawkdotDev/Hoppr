@@ -9,7 +9,7 @@ set -euo pipefail
 
 # ── Constants ──────────────────────────────────────────────────────────────────
 REPO="HawkdotDev/Hoppr"
-BIN_NAME="hoppr"
+BIN_NAME="hop"
 
 # ── Colors ─────────────────────────────────────────────────────────────────────
 if [ -t 1 ] && command -v tput >/dev/null 2>&1; then
@@ -267,7 +267,7 @@ echo "${GREEN}  ║     Hoppr installed successfully! 🎉   ║${RESET}"
 echo "${GREEN}  ╚═══════════════════════════════════════╝${RESET}"
 echo ""
 echo "  Get started:"
-echo "${GRAY}    hoppr doctor         — verify installation health${RESET}"
+echo "${GRAY}    hop doctor            — verify installation health${RESET}"
 echo "${GRAY}    hop add .            — save current folder as a project${RESET}"
 echo "${GRAY}    hop list             — view all saved projects${RESET}"
 echo "${GRAY}    hop <project>        — jump to any saved project${RESET}"

@@ -52,12 +52,12 @@ jobs:
           LDFLAGS="-s -w -X 'hoppr/internal/version.Version=${VERSION}' -X 'hoppr/internal/version.Commit=${COMMIT}' -X 'hoppr/internal/version.BuildDate=${BUILD_DATE}'"
 
           TARGETS=(
-            "windows/amd64/hoppr.exe"
-            "windows/arm64/hoppr.exe"
-            "darwin/amd64/hoppr"
-            "darwin/arm64/hoppr"
-            "linux/amd64/hoppr"
-            "linux/arm64/hoppr"
+            "windows/amd64/hop.exe"
+            "windows/arm64/hop.exe"
+            "darwin/amd64/hop"
+            "darwin/arm64/hop"
+            "linux/amd64/hop"
+            "linux/arm64/hop"
           )
 
           for TARGET in "${TARGETS[@]}"; do

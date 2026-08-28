@@ -1,12 +1,15 @@
 # Hoppr PowerShell Integration
 # Add to $PROFILE: . /path/to/hop.ps1
+#
+# The binary is called "hop" directly. This wrapper adds:
+#   1. Directory jumping: `hop <project>` does `cd` into the project path
+#   2. Tab completion for project and command names
 
 function hop {
-    # Collect all arguments as an array (avoids named-param / $args conflict)
     $allArgs = $args
 
     if ($allArgs.Count -eq 0) {
-        & hoppr
+        & hop.exe
         return
     }
 
@@ -24,21 +27,21 @@ function hop {
 
     # Single-argument invocation that is NOT a known command → treat as project jump
     if ($allArgs.Count -eq 1 -and $cmd -notin $nonJumpCmds) {
-        $target = & hoppr _get_path $cmd 2>$null
+        $target = & hop.exe _get_path $cmd 2>$null
         if ($target -and (Test-Path $target)) {
             Set-Location $target
             return
         }
     }
 
-    # Otherwise, pass everything through to the hoppr binary
-    & hoppr @allArgs
+    # Otherwise, pass everything through to the hop binary
+    & hop.exe @allArgs
 }
 
 # PowerShell Tab Completion
-Register-ArgumentCompleter -Native -CommandName hop,hoppr -ScriptBlock {
+Register-ArgumentCompleter -Native -CommandName hop -ScriptBlock {
     param($wordToComplete, $commandAst, $cursorPosition)
-    $suggestions = & hoppr _complete $wordToComplete 2>$null
+    $suggestions = & hop.exe _complete $wordToComplete 2>$null
     $suggestions | Where-Object { $_ -like "$wordToComplete*" } | ForEach-Object {
         [System.Management.Automation.CompletionResult]::new($_, $_, 'ParameterValue', $_)
     }

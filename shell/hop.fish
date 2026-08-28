@@ -6,7 +6,7 @@ function hop
 
     if test (count $argv) -eq 1
         if not contains -- $argv[1] $non_jump_cmds
-            set -l target (command hoppr _get_path $argv[1] 2>/dev/null)
+            set -l target (command hop _get_path $argv[1] 2>/dev/null)
             if test -n "$target" -a -d "$target"
                 cd "$target"
                 return 0
@@ -14,8 +14,7 @@ function hop
         end
     end
 
-    command hoppr $argv
+    command hop $argv
 end
 
-complete -c hop -f -a '(command hoppr _complete 2>/dev/null)'
-complete -c hoppr -f -a '(command hoppr _complete 2>/dev/null)'
+complete -c hop -f -a '(command hop _complete 2>/dev/null)'

@@ -16,7 +16,7 @@ hop() {
 
         if [ "$is_subcmd" -eq 0 ]; then
             local target
-            target=$(command hoppr _get_path "$1" 2>/dev/null)
+            target=$(command hop _get_path "$1" 2>/dev/null)
             if [ -n "$target" ] && [ -d "$target" ]; then
                 cd "$target" || return
                 return 0
@@ -24,16 +24,15 @@ hop() {
         fi
     fi
 
-    command hoppr "$@"
+    command hop "$@"
 }
 
 # Dynamic Bash Completion
 _hop_completions() {
     local cur="${COMP_WORDS[COMP_CWORD]}"
     local suggestions
-    suggestions=$(command hoppr _complete "$cur" 2>/dev/null)
+    suggestions=$(command hop _complete "$cur" 2>/dev/null)
     COMPREPLY=( $(compgen -W "$suggestions" -- "$cur") )
 }
 
 complete -F _hop_completions hop
-complete -F _hop_completions hoppr

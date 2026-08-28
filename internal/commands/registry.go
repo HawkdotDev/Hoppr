@@ -130,7 +130,7 @@ func PrintDirectUsage(w io.Writer) {
 
 // PrintVersion outputs version details.
 func (r *Registry) PrintVersion(w io.Writer) {
-	fmt.Fprintf(w, "hoppr version %s (commit: %s, built: %s)\n",
+	fmt.Fprintf(w, "hop version %s (commit: %s, built: %s)\n",
 		ui.Bold(version.Version),
 		version.Commit,
 		version.BuildDate,
