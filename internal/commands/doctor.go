@@ -24,31 +24,58 @@ func (c *DoctorCommand) Synopsis() string    { return "Inspect environment and v
 func (c *DoctorCommand) Usage() string       { return "hop doctor" }
 
 func (c *DoctorCommand) Execute(ctx context.Context, args []string, out io.Writer, errOut io.Writer) int {
-	fmt.Fprintln(out, ui.Bold("Running Hoppr diagnostics..."))
-	fmt.Fprintln(out)
+	fmt.Fprintf(out, "\n%s %s\n\n", ui.Violet(ui.IconZap), ui.Bold("Hoppr Environment Diagnostics"))
 
 	results, err := c.doctor.RunDiagnostics(ctx)
 	if err != nil {
-		fmt.Fprintf(errOut, ui.Red("Doctor error: %v\n"), err)
+		ui.ErrorMsg(errOut, "Diagnostics failed: %v", err)
 		return domain.ExitFailure
 	}
 
-	allPassed := true
+	passedCount := 0
+	failedCount := 0
+
 	for _, res := range results {
 		if res.Passed {
-			fmt.Fprintf(out, "  %s  %s: %s\n", ui.Green("✓"), ui.Bold(res.Title), ui.Dim(res.Message))
+			passedCount++
+			fmt.Fprintf(out, "  %s  %-20s %s\n",
+				ui.Green(ui.IconCheck),
+				ui.Bold(res.Title),
+				ui.Gray(res.Message),
+			)
 		} else {
-			allPassed = false
-			fmt.Fprintf(out, "  %s  %s: %s\n", ui.Red("✗"), ui.Bold(res.Title), ui.Yellow(res.Message))
+			failedCount++
+			fmt.Fprintf(out, "  %s  %-20s %s\n",
+				ui.Red(ui.IconCross),
+				ui.Bold(res.Title),
+				ui.Red(res.Message),
+			)
 		}
 	}
 
 	fmt.Fprintln(out)
-	if allPassed {
-		fmt.Fprintln(out, ui.Green("All checks passed! Your environment is healthy."))
+	divider := ui.Gray("───────────────────────────────────────────────")
+	fmt.Fprintln(out, divider)
+
+	if failedCount == 0 {
+		fmt.Fprintf(out, "  %s %s (%d checks passed)\n\n",
+			ui.Green(ui.IconCheck),
+			ui.Green(ui.Bold("All checks passed! Your environment is healthy.")),
+			passedCount,
+		)
 		return domain.ExitSuccess
 	}
 
-	fmt.Fprintln(out, ui.Yellow("Some issues were found in your environment. Check the items above."))
+	fmt.Fprintf(out, "  %s %s (%d passed, %d issues)\n",
+		ui.Yellow(ui.IconWarn),
+		ui.Yellow(ui.Bold("Some issues were detected in your configuration.")),
+		passedCount,
+		failedCount,
+	)
+	fmt.Fprintf(out, "  %s Run '%s' to update or '%s' to clean up.\n\n",
+		ui.Cyan("💡 Tip:"),
+		ui.Cyan("hop add ."),
+		ui.Cyan("hop remove <name>"),
+	)
 	return domain.ExitFailure
 }

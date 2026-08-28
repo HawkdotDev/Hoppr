@@ -84,7 +84,8 @@ func (r *Registry) Dispatch(ctx context.Context, args []string, out io.Writer, e
 		return cmd.Execute(ctx, cmdArgs, out, errOut)
 	}
 
-	fmt.Fprintf(errOut, ui.Red("Error: Unknown command '%s'\n"), cmdName)
+	ui.ErrorMsg(errOut, "Unknown command '%s'", cmdName)
+	fmt.Fprintln(errOut)
 	r.PrintUsage(errOut)
 	return domain.ExitUsage
 }
@@ -96,44 +97,53 @@ func (r *Registry) PrintUsage(w io.Writer) {
 
 // PrintDirectUsage prints the main CLI help menu directly without requiring a registry instance.
 func PrintDirectUsage(w io.Writer) {
-	fmt.Fprintf(w, "%s - The fast lane to your favourite projects\n\n", ui.Bold("Hoppr"))
-	fmt.Fprintf(w, "%s:\n  hop <command> [arguments]\n\n", ui.Bold("Usage"))
+	fmt.Fprintf(w, "\n%s %s — %s\n\n",
+		ui.Violet(ui.IconZap),
+		ui.Bold("Hoppr"),
+		ui.Gray("The fast lane to your favourite projects"),
+	)
 
-	fmt.Fprintf(w, "%s:\n", ui.Bold("Project Commands"))
+	fmt.Fprintf(w, "%s\n", ui.Bold("Usage:"))
+	fmt.Fprintf(w, "  %s %s\n", ui.Cyan("hop"), ui.Gray("<command> [arguments]"))
+	fmt.Fprintf(w, "  %s %s\n\n", ui.Cyan("hop"), ui.Gray("<project>               Jump directly into project"))
+
+	fmt.Fprintf(w, "%s\n", ui.Bold("Project Shortcuts:"))
 	tw := tabwriter.NewWriter(w, 0, 0, 3, ' ', 0)
-	fmt.Fprintf(tw, "  %s\t%s\n", ui.Cyan("add <name> [list]"), "Save current directory as a project (use '.' for defaults)")
-	fmt.Fprintf(tw, "  %s\t%s\n", ui.Cyan("remove <name> [list]"), "Remove a project from a list")
+	fmt.Fprintf(tw, "  %s\t%s\n", ui.Cyan("add <name> [list]"), ui.Gray("Save current directory (use '.' for defaults)"))
+	fmt.Fprintf(tw, "  %s\t%s\n", ui.Cyan("remove <name> [list]"), ui.Gray("Remove a project shortcut"))
 	tw.Flush()
 
-	fmt.Fprintf(w, "\n%s:\n", ui.Bold("List Commands"))
+	fmt.Fprintf(w, "\n%s\n", ui.Bold("List Management:"))
 	tw = tabwriter.NewWriter(w, 0, 0, 3, ' ', 0)
-	fmt.Fprintf(tw, "  %s\t%s\n", ui.Cyan("create <list>"), "Create a new empty list")
-	fmt.Fprintf(tw, "  %s\t%s\n", ui.Cyan("list [list]"), "Show all lists or projects in a specific list (--plain, --json)")
-	fmt.Fprintf(tw, "  %s\t%s\n", ui.Cyan("import <list> <folder>"), "Bulk-import a folder's subfolders as projects")
-	fmt.Fprintf(tw, "  %s\t%s\n", ui.Cyan("drop <list>"), "Delete an entire list")
-	fmt.Fprintf(tw, "  %s\t%s\n", ui.Cyan("rename <list> <new>"), "Rename a list")
-	fmt.Fprintf(tw, "  %s\t%s\n", ui.Cyan("setdefault <list>"), "Set the default list")
+	fmt.Fprintf(tw, "  %s\t%s\n", ui.Cyan("list [list]"), ui.Gray("Display saved projects (--plain, --json)"))
+	fmt.Fprintf(tw, "  %s\t%s\n", ui.Cyan("create <list>"), ui.Gray("Create a new empty project list"))
+	fmt.Fprintf(tw, "  %s\t%s\n", ui.Cyan("import <list> <folder>"), ui.Gray("Bulk-import subfolders as projects"))
+	fmt.Fprintf(tw, "  %s\t%s\n", ui.Cyan("drop <list>"), ui.Gray("Delete an entire project list"))
+	fmt.Fprintf(tw, "  %s\t%s\n", ui.Cyan("rename <list> <new>"), ui.Gray("Rename an existing list"))
+	fmt.Fprintf(tw, "  %s\t%s\n", ui.Cyan("setdefault <list>"), ui.Gray("Change the active default list"))
 	tw.Flush()
 
-	fmt.Fprintf(w, "\n%s:\n", ui.Bold("Diagnostics & Utilities"))
+	fmt.Fprintf(w, "\n%s\n", ui.Bold("Diagnostics & System:"))
 	tw = tabwriter.NewWriter(w, 0, 0, 3, ' ', 0)
-	fmt.Fprintf(tw, "  %s\t%s\n", ui.Cyan("doctor"), "Inspect environment health and validate saved paths")
-	fmt.Fprintf(tw, "  %s\t%s\n", ui.Cyan("--version, -v"), "Show version and build metadata")
-	fmt.Fprintf(tw, "  %s\t%s\n", ui.Cyan("--help, -h"), "Show this help message")
+	fmt.Fprintf(tw, "  %s\t%s\n", ui.Cyan("doctor"), ui.Gray("Inspect environment and check for broken paths"))
+	fmt.Fprintf(tw, "  %s\t%s\n", ui.Cyan("--version, -v"), ui.Gray("Show version and build metadata"))
+	fmt.Fprintf(tw, "  %s\t%s\n", ui.Cyan("--help, -h"), ui.Gray("Show this help message"))
 	tw.Flush()
 
-	fmt.Fprintf(w, "\n%s:\n", ui.Bold("Shorthand '.' Resolution"))
-	fmt.Fprintf(w, "  %s resolves to current directory\n", ui.Yellow("<folder> ."))
-	fmt.Fprintf(w, "  %s resolves to current folder's basename\n", ui.Yellow("<name>   ."))
-	fmt.Fprintf(w, "  %s resolves to the active default list\n", ui.Yellow("<list>   ."))
+	fmt.Fprintf(w, "\n%s\n", ui.Bold("Shorthand '.' Resolution:"))
+	fmt.Fprintf(w, "  %s  resolves to current folder's name\n", ui.Amber("<name>   ."))
+	fmt.Fprintf(w, "  %s  resolves to current directory path\n", ui.Amber("<folder> ."))
+	fmt.Fprintf(w, "  %s  resolves to the active default list\n\n", ui.Amber("<list>   ."))
 }
 
 // PrintVersion outputs version details.
 func (r *Registry) PrintVersion(w io.Writer) {
-	fmt.Fprintf(w, "hop version %s (commit: %s, built: %s)\n",
-		ui.Bold(version.Version),
-		version.Commit,
-		version.BuildDate,
+	fmt.Fprintf(w, "%s %s %s (commit: %s, built: %s)\n",
+		ui.Violet(ui.IconZap),
+		ui.Bold("hop"),
+		ui.Cyan("v"+version.Version),
+		ui.Gray(version.Commit),
+		ui.Gray(version.BuildDate),
 	)
 }
 

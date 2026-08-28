@@ -21,10 +21,12 @@ func main() {
 
 	switch os.Args[1] {
 	case "--version", "-v", "version":
-		fmt.Fprintf(os.Stdout, "hop version %s (commit: %s, built: %s)\n",
-			ui.Bold(version.Version),
-			version.Commit,
-			version.BuildDate,
+		fmt.Fprintf(os.Stdout, "%s %s %s (commit: %s, built: %s)\n",
+			ui.Violet(ui.IconZap),
+			ui.Bold("hop"),
+			ui.Cyan("v"+version.Version),
+			ui.Gray(version.Commit),
+			ui.Gray(version.BuildDate),
 		)
 		os.Exit(domain.ExitSuccess)
 	case "--help", "-h", "help":

@@ -25,8 +25,8 @@ func (c *RemoveCommand) Usage() string       { return "hop remove <name> [list]"
 
 func (c *RemoveCommand) Execute(ctx context.Context, args []string, out io.Writer, errOut io.Writer) int {
 	if len(args) < 1 {
-		fmt.Fprintln(errOut, ui.Red("Error: Please provide a project name."))
-		fmt.Fprintf(errOut, "Usage: %s\n", c.Usage())
+		ui.ErrorMsg(errOut, "Please provide a project name.")
+		fmt.Fprintf(errOut, "  %s %s\n", ui.Gray("Usage:"), ui.Cyan(c.Usage()))
 		return domain.ExitUsage
 	}
 
@@ -38,13 +38,16 @@ func (c *RemoveCommand) Execute(ctx context.Context, args []string, out io.Write
 
 	finalName, finalList, err := c.service.RemoveProject(ctx, name, list)
 	if err != nil {
-		fmt.Fprintf(errOut, ui.Red("Error: %v\n"), err)
+		ui.ErrorMsg(errOut, "%v", err)
 		if err == domain.ErrProjectNotFound || err == domain.ErrListNotFound {
 			return domain.ExitNotFound
 		}
 		return domain.ExitFailure
 	}
 
-	fmt.Fprintf(out, "Removed project '%s' from list '%s'.\n", ui.Bold(finalName), ui.Yellow(finalList))
+	ui.SuccessMsg(out, "Removed project %s from list %s",
+		ui.Cyan(ui.Bold(finalName)),
+		ui.Violet(fmt.Sprintf("[%s]", finalList)),
+	)
 	return domain.ExitSuccess
 }

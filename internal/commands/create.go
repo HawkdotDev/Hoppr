@@ -25,18 +25,18 @@ func (c *CreateCommand) Usage() string       { return "hop create <list>" }
 
 func (c *CreateCommand) Execute(ctx context.Context, args []string, out io.Writer, errOut io.Writer) int {
 	if len(args) < 1 {
-		fmt.Fprintln(errOut, ui.Red("Error: Please provide a list name."))
-		fmt.Fprintf(errOut, "Usage: %s\n", c.Usage())
+		ui.ErrorMsg(errOut, "Please provide a list name.")
+		fmt.Fprintf(errOut, "  %s %s\n", ui.Gray("Usage:"), ui.Cyan(c.Usage()))
 		return domain.ExitUsage
 	}
 
 	listName := args[0]
 	err := c.service.CreateList(ctx, listName)
 	if err != nil {
-		fmt.Fprintf(errOut, ui.Red("Error: %v\n"), err)
+		ui.ErrorMsg(errOut, "%v", err)
 		return domain.ExitFailure
 	}
 
-	fmt.Fprintf(out, "Created empty list '%s'.\n", ui.Bold(listName))
+	ui.SuccessMsg(out, "Created project list %s", ui.Violet(fmt.Sprintf("[%s]", listName)))
 	return domain.ExitSuccess
 }

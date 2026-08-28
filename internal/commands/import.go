@@ -25,8 +25,8 @@ func (c *ImportCommand) Usage() string       { return "hop import <list> <folder
 
 func (c *ImportCommand) Execute(ctx context.Context, args []string, out io.Writer, errOut io.Writer) int {
 	if len(args) < 2 {
-		fmt.Fprintln(errOut, ui.Red("Error: Please provide target list and folder path (use '.' for defaults)."))
-		fmt.Fprintf(errOut, "Usage: %s\n", c.Usage())
+		ui.ErrorMsg(errOut, "Please provide target list and folder path (use '.' for defaults).")
+		fmt.Fprintf(errOut, "  %s %s\n", ui.Gray("Usage:"), ui.Cyan(c.Usage()))
 		return domain.ExitUsage
 	}
 
@@ -35,14 +35,14 @@ func (c *ImportCommand) Execute(ctx context.Context, args []string, out io.Write
 
 	count, finalList, finalFolder, err := c.service.Import(ctx, list, folder)
 	if err != nil {
-		fmt.Fprintf(errOut, ui.Red("Error: %v\n"), err)
+		ui.ErrorMsg(errOut, "%v", err)
 		return domain.ExitFailure
 	}
 
-	fmt.Fprintf(out, "Successfully imported %s projects from '%s' into list '%s'.\n",
-		ui.Bold(fmt.Sprintf("%d", count)),
-		ui.Cyan(finalFolder),
-		ui.Yellow(finalList),
+	ui.SuccessMsg(out, "Imported %s projects from %s into %s",
+		ui.Emerald(ui.Bold(fmt.Sprintf("%d", count))),
+		ui.Gray(finalFolder),
+		ui.Violet(fmt.Sprintf("[%s]", finalList)),
 	)
 	return domain.ExitSuccess
 }

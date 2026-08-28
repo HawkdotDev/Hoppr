@@ -25,8 +25,8 @@ func (c *AddCommand) Usage() string       { return "hop add <name> [list]" }
 
 func (c *AddCommand) Execute(ctx context.Context, args []string, out io.Writer, errOut io.Writer) int {
 	if len(args) < 1 {
-		fmt.Fprintln(errOut, ui.Red("Error: Please provide a project name (or '.' for current directory name)."))
-		fmt.Fprintf(errOut, "Usage: %s\n", c.Usage())
+		ui.ErrorMsg(errOut, "Please provide a project name (or '.' for current directory name).")
+		fmt.Fprintf(errOut, "  %s %s\n", ui.Gray("Usage:"), ui.Cyan(c.Usage()))
 		return domain.ExitUsage
 	}
 
@@ -38,10 +38,15 @@ func (c *AddCommand) Execute(ctx context.Context, args []string, out io.Writer, 
 
 	finalName, finalList, path, err := c.service.AddProject(ctx, name, list)
 	if err != nil {
-		fmt.Fprintf(errOut, ui.Red("Error: %v\n"), err)
+		ui.ErrorMsg(errOut, "%v", err)
 		return domain.ExitFailure
 	}
 
-	fmt.Fprintf(out, "Added project '%s' -> %s [%s]\n", ui.Bold(finalName), ui.Cyan(path), ui.Yellow(finalList))
+	ui.SuccessMsg(out, "Saved project %s %s %s %s",
+		ui.Cyan(ui.Bold(finalName)),
+		ui.Gray(ui.IconArrow),
+		ui.Gray(path),
+		ui.Violet(fmt.Sprintf("[%s]", finalList)),
+	)
 	return domain.ExitSuccess
 }
