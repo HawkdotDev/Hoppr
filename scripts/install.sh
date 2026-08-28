@@ -83,8 +83,8 @@ elif command -v wget >/dev/null 2>&1; then
 fi
 
 if [ -z "$TAG" ]; then
-    warn "GitHub API unreachable. Falling back to v1.0.0."
-    TAG="v1.0.0"
+    warn "GitHub API unreachable. Falling back to v1.1.0."
+    TAG="v1.1.0"
 fi
 ok "Release: ${TAG}"
 

@@ -53,8 +53,8 @@ try {
     $Release  = Invoke-RestMethod -Uri $ApiUrl -Headers $Headers -UseBasicParsing
     $Tag      = $Release.tag_name
 } catch {
-    Write-Warn "GitHub API unreachable. Falling back to v1.0.0."
-    $Tag = "v1.0.0"
+    Write-Warn "GitHub API unreachable. Falling back to v1.1.0."
+    $Tag = "v1.1.0"
 }
 Write-Ok "Release: $Tag"
 
