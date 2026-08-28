@@ -97,3 +97,50 @@ func TestJSONStorage_LegacyMigration(t *testing.T) {
 		t.Errorf("expected editor 'nvim', got '%s'", cfg.Editor)
 	}
 }
+
+func TestJSONStorage_SelfHealingRecovery(t *testing.T) {
+	tempDir, err := os.MkdirTemp("", "hoppr-heal-*")
+	if err != nil {
+		t.Fatalf("temp dir error: %v", err)
+	}
+	defer os.RemoveAll(tempDir)
+
+	// Write valid backup JSON
+	backupJSON := `{
+		"schema_version": 1,
+		"lists": {
+			"default": {
+				"saved-proj": "/good/path"
+			}
+		},
+		"default_list": "default",
+		"editor": "code"
+	}`
+	backupPath := filepath.Join(tempDir, "config.json.bak")
+	if err := os.WriteFile(backupPath, []byte(backupJSON), 0600); err != nil {
+		t.Fatalf("write backup json error: %v", err)
+	}
+
+	// Write corrupted main config JSON
+	corruptedJSON := `{ "schema_version": 1, "lists": { BROKEN JSON`
+	cfgPath := filepath.Join(tempDir, "config.json")
+	if err := os.WriteFile(cfgPath, []byte(corruptedJSON), 0600); err != nil {
+		t.Fatalf("write corrupted json error: %v", err)
+	}
+
+	store, err := NewJSONStorage(tempDir)
+	if err != nil {
+		t.Fatalf("NewJSONStorage error: %v", err)
+	}
+
+	ctx := context.Background()
+	cfg, err := store.Read(ctx)
+	if err != nil {
+		t.Fatalf("expected self-healing read to succeed, got error: %v", err)
+	}
+
+	if cfg.Lists["default"]["saved-proj"] != "/good/path" {
+		t.Errorf("expected recovered path '/good/path', got '%s'", cfg.Lists["default"]["saved-proj"])
+	}
+}
+

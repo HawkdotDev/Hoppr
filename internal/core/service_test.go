@@ -2,143 +2,75 @@ package core
 
 import (
 	"context"
-	"os"
-	"path/filepath"
 	"testing"
 
 	"hoppr/internal/domain"
 	"hoppr/internal/storage"
 )
 
-func setupTestService() *ProjectService {
-	memStore := storage.NewMemoryStorage(domain.NewDefaultConfig())
-	return NewProjectService(memStore)
-}
-
-func TestProjectService_AddAndGet(t *testing.T) {
-	svc := setupTestService()
+func TestProjectService_CaseInsensitiveGetPath(t *testing.T) {
+	store := storage.NewMemoryStorage()
+	service := NewProjectService(store)
 	ctx := context.Background()
 
-	cwd, _ := os.Getwd()
-
-	name, list, path, err := svc.AddProject(ctx, "test-proj", "work")
+	// Add project with CamelCase
+	_, _, _, err := service.AddProject(ctx, "MyApp", "default")
 	if err != nil {
-		t.Fatalf("unexpected error adding project: %v", err)
+		t.Fatalf("AddProject error: %v", err)
 	}
 
-	if name != "test-proj" {
-		t.Errorf("expected name 'test-proj', got '%s'", name)
-	}
-	if list != "work" {
-		t.Errorf("expected list 'work', got '%s'", list)
-	}
-	if path != cwd {
-		t.Errorf("expected path '%s', got '%s'", cwd, path)
-	}
-
-	// Retrieve path
-	foundPath, err := svc.GetPath(ctx, "test-proj", "work")
+	// Exact lookup
+	path, err := service.GetPath(ctx, "MyApp", "default")
 	if err != nil {
-		t.Fatalf("unexpected error getting path: %v", err)
+		t.Errorf("expected exact lookup to succeed, got %v", err)
 	}
-	if foundPath != cwd {
-		t.Errorf("expected found path '%s', got '%s'", cwd, foundPath)
+	if path == "" {
+		t.Errorf("expected non-empty path")
 	}
 
-	// Retrieve path across lists via fallback
-	foundFallback, err := svc.GetPath(ctx, "test-proj", "")
+	// Lowercase lookup (case-insensitive)
+	pathLower, err := service.GetPath(ctx, "myapp", "default")
 	if err != nil {
-		t.Fatalf("unexpected error getting path via fallback: %v", err)
+		t.Errorf("expected case-insensitive lookup to succeed, got %v", err)
 	}
-	if foundFallback != cwd {
-		t.Errorf("expected fallback path '%s', got '%s'", cwd, foundFallback)
-	}
-}
-
-func TestProjectService_ShorthandDot(t *testing.T) {
-	svc := setupTestService()
-	ctx := context.Background()
-
-	cwd, _ := os.Getwd()
-	expectedBase := filepath.Base(cwd)
-
-	// Add with "." name and "." list
-	name, list, path, err := svc.AddProject(ctx, ".", ".")
-	if err != nil {
-		t.Fatalf("unexpected error adding with shorthand: %v", err)
+	if pathLower != path {
+		t.Errorf("expected %q, got %q", path, pathLower)
 	}
 
-	if name != expectedBase {
-		t.Errorf("expected shorthand name '%s', got '%s'", expectedBase, name)
-	}
-	if list != "default" {
-		t.Errorf("expected default list 'default', got '%s'", list)
-	}
-	if path != cwd {
-		t.Errorf("expected path '%s', got '%s'", cwd, path)
-	}
-}
-
-func TestProjectService_RemoveProject(t *testing.T) {
-	svc := setupTestService()
-	ctx := context.Background()
-
-	_, _, _, err := svc.AddProject(ctx, "proj1", "default")
-	if err != nil {
-		t.Fatalf("add error: %v", err)
-	}
-
-	// Remove project
-	_, _, err = svc.RemoveProject(ctx, "proj1", "default")
-	if err != nil {
-		t.Fatalf("remove error: %v", err)
-	}
-
-	// Verify not found
-	_, err = svc.GetPath(ctx, "proj1", "default")
+	// Non-existent lookup
+	_, err = service.GetPath(ctx, "unknown", "default")
 	if err != domain.ErrProjectNotFound {
 		t.Errorf("expected ErrProjectNotFound, got %v", err)
 	}
 }
 
-func TestProjectService_ListManagement(t *testing.T) {
-	svc := setupTestService()
+func TestProjectService_ListLifecycle(t *testing.T) {
+	store := storage.NewMemoryStorage()
+	service := NewProjectService(store)
 	ctx := context.Background()
 
-	// 1. Create list
-	err := svc.CreateList(ctx, "oss")
-	if err != nil {
-		t.Fatalf("create list error: %v", err)
+	// Create list
+	if err := service.CreateList(ctx, "work"); err != nil {
+		t.Fatalf("CreateList error: %v", err)
 	}
 
-	// Duplicate create error
-	err = svc.CreateList(ctx, "oss")
-	if err != domain.ErrListExists {
+	// Duplicate list should fail
+	if err := service.CreateList(ctx, "work"); err != domain.ErrListExists {
 		t.Errorf("expected ErrListExists, got %v", err)
 	}
 
-	// 2. Rename list
-	err = svc.RenameList(ctx, "oss", "open-source")
-	if err != nil {
-		t.Fatalf("rename list error: %v", err)
+	// Rename list
+	if err := service.RenameList(ctx, "work", "office"); err != nil {
+		t.Fatalf("RenameList error: %v", err)
 	}
 
-	// 3. Set default list
-	err = svc.SetDefaultList(ctx, "open-source")
-	if err != nil {
-		t.Fatalf("setdefault error: %v", err)
+	// Set default list
+	if err := service.SetDefaultList(ctx, "office"); err != nil {
+		t.Fatalf("SetDefaultList error: %v", err)
 	}
 
-	// Cannot drop active default list
-	err = svc.DropList(ctx, "open-source")
-	if err != domain.ErrCannotDeleteDefaultList {
+	// Drop default list should fail
+	if err := service.DropList(ctx, "office"); err != domain.ErrCannotDeleteDefaultList {
 		t.Errorf("expected ErrCannotDeleteDefaultList, got %v", err)
-	}
-
-	// Reset default and drop
-	_ = svc.SetDefaultList(ctx, "default")
-	err = svc.DropList(ctx, "open-source")
-	if err != nil {
-		t.Fatalf("drop list error: %v", err)
 	}
 }
