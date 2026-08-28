@@ -21,6 +21,7 @@ function hop {
         "setdefault", "default", "use",
         "import", "scan", "load",
         "doctor", "check", "diag",
+        "update", "upgrade", "self-update",
         "help", "--help", "-h",
         "--version", "-v", "version"
     )

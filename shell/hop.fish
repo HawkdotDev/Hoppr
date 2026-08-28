@@ -2,7 +2,7 @@
 # Add to ~/.config/fish/config.fish: source /path/to/hop.fish
 
 function hop
-    set -l non_jump_cmds add remove rm del delete list ls l create new drop rename mv setdefault default use import scan load doctor check diag help --help -h --version -v version
+    set -l non_jump_cmds add remove rm del delete list ls l create new drop rename mv setdefault default use import scan load doctor check diag update upgrade self-update help --help -h --version -v version
 
     if test (count $argv) -eq 1
         if not contains -- $argv[1] $non_jump_cmds

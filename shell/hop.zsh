@@ -3,7 +3,7 @@
 
 hop() {
     local -a non_jump_cmds
-    non_jump_cmds=(add remove rm del delete list ls l create new drop rename mv setdefault default use import scan load doctor check diag help --help -h --version -v version)
+    non_jump_cmds=(add remove rm del delete list ls l create new drop rename mv setdefault default use import scan load doctor check diag update upgrade self-update help --help -h --version -v version)
 
     if [ "$#" -eq 1 ]; then
         if [[ ! " ${non_jump_cmds[*]} " =~ " $1 " ]]; then

@@ -77,6 +77,15 @@ hop rename <list> <new>      # rename a list
 hop setdefault <list>        # set the default list
 ```
 
+### System & Maintenance Commands
+
+```bash
+hop doctor                   # inspect environment health and validate project paths
+hop update                   # upgrade Hoppr to the latest release in-place
+hop --version                # show version and build metadata
+hop --help                   # show help menu
+```
+
 ### Shorthand: `.`
 
 Use `.` in place of any argument to resolve contextually:

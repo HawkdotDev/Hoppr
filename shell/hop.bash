@@ -2,7 +2,7 @@
 # Add to ~/.bashrc: source /path/to/hop.bash
 
 hop() {
-    local non_jump_cmds=("add" "remove" "rm" "del" "delete" "list" "ls" "l" "create" "new" "drop" "rename" "mv" "setdefault" "default" "use" "import" "scan" "load" "doctor" "check" "diag" "help" "--help" "-h" "--version" "-v" "version")
+    local non_jump_cmds=("add" "remove" "rm" "del" "delete" "list" "ls" "l" "create" "new" "drop" "rename" "mv" "setdefault" "default" "use" "import" "scan" "load" "doctor" "check" "diag" "update" "upgrade" "self-update" "help" "--help" "-h" "--version" "-v" "version")
 
     # If single argument provided and not a known subcommand, attempt project jump
     if [ "$#" -eq 1 ]; then

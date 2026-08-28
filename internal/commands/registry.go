@@ -25,6 +25,7 @@ type Registry struct {
 func NewRegistry(store storage.StorageEngine) *Registry {
 	projectService := core.NewProjectService(store)
 	doctorService := core.NewDoctorService(store)
+	updateService := core.NewUpdateService()
 
 	r := &Registry{
 		commands: make(map[string]Command),
@@ -40,6 +41,7 @@ func NewRegistry(store storage.StorageEngine) *Registry {
 	r.Register(NewSetDefaultCommand(projectService))
 	r.Register(NewImportCommand(projectService))
 	r.Register(NewDoctorCommand(doctorService))
+	r.Register(NewUpdateCommand(updateService))
 	r.Register(NewGetPathCommand(projectService))
 	r.Register(NewGetEditorCommand(projectService))
 	r.Register(NewCompleteCommand(projectService))
@@ -138,6 +140,7 @@ func PrintDirectUsage(w io.Writer) {
 	fmt.Fprintf(w, "\n%s\n", ui.Bold("Diagnostics & System:"))
 	tw = tabwriter.NewWriter(w, 0, 0, 3, ' ', 0)
 	fmt.Fprintf(tw, "  %s\t%s\n", ui.Cyan("doctor"), ui.Gray("Inspect environment and check for broken paths"))
+	fmt.Fprintf(tw, "  %s\t%s\n", ui.Cyan("update"), ui.Gray("Upgrade Hoppr to the latest release (self-update)"))
 	fmt.Fprintf(tw, "  %s\t%s\n", ui.Cyan("--version, -v"), ui.Gray("Show version and build metadata"))
 	fmt.Fprintf(tw, "  %s\t%s\n", ui.Cyan("--help, -h"), ui.Gray("Show this help message"))
 	tw.Flush()
