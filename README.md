@@ -10,11 +10,34 @@ No more `cd ../../..` archaeology. Just hop.
 
 ## Installation
 
-```bash
-go install github.com/hawkdotdev/hoppr@latest
+### 1-Line Quick Install (Zero Dependencies Required)
+
+No need to install Go! Download and install the pre-compiled standalone binary with one command:
+
+#### Windows (PowerShell)
+```powershell
+irm https://raw.githubusercontent.com/HawkdotDev/Hoppr/main/scripts/install.ps1 | iex
 ```
 
-Config is stored at `~/.hoppr/config.json` automatically on first use.
+#### macOS / Linux / WSL (Bash / Zsh)
+```bash
+curl -fsSL https://raw.githubusercontent.com/HawkdotDev/Hoppr/main/scripts/install.sh | bash
+```
+
+---
+
+### Alternative: Install via Go Toolchain
+If you have Go installed and prefer building from source:
+```bash
+go install github.com/hawkdotdev/hoppr/cmd/hop@latest
+```
+
+---
+
+### Pre-Built Binaries
+Download the standalone executable directly for your OS from [GitHub Releases](https://github.com/HawkdotDev/Hoppr/releases).
+
+Config is automatically initialized at `~/.hoppr/config.json` on first use.
 
 ## Core Concepts
 

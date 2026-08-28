@@ -1,0 +1,112 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Release version tag (e.g. v1.0.0)'
+        required: true
+        default: 'v1.0.0'
+
+permissions:
+  contents: write
+
+jobs:
+  build-and-release:
+    name: Build & Release Binaries
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.23'
+          cache: true
+
+      - name: Determine Version
+        id: get_version
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "VERSION=${{ github.event.inputs.version }}" >> $GITHUB_OUTPUT
+          else
+            echo "VERSION=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
+          fi
+          echo "COMMIT=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
+          echo "BUILD_DATE=$(date -u +%Y-%m-%dT%H:%M:%SZ)" >> $GITHUB_OUTPUT
+
+      - name: Build Standalone Binaries
+        env:
+          VERSION: ${{ steps.get_version.outputs.VERSION }}
+          COMMIT: ${{ steps.get_version.outputs.COMMIT }}
+          BUILD_DATE: ${{ steps.get_version.outputs.BUILD_DATE }}
+        run: |
+          mkdir -p dist
+
+          LDFLAGS="-s -w -X 'hoppr/internal/version.Version=${VERSION}' -X 'hoppr/internal/version.Commit=${COMMIT}' -X 'hoppr/internal/version.BuildDate=${BUILD_DATE}'"
+
+          TARGETS=(
+            "windows/amd64/hoppr.exe"
+            "windows/arm64/hoppr.exe"
+            "darwin/amd64/hoppr"
+            "darwin/arm64/hoppr"
+            "linux/amd64/hoppr"
+            "linux/arm64/hoppr"
+          )
+
+          for TARGET in "${TARGETS[@]}"; do
+            OS=$(echo "$TARGET" | cut -d'/' -f1)
+            ARCH=$(echo "$TARGET" | cut -d'/' -f2)
+            BIN_NAME=$(echo "$TARGET" | cut -d'/' -f3)
+            
+            OUTPUT_DIR="dist/hoppr-${OS}-${ARCH}"
+            mkdir -p "$OUTPUT_DIR"
+
+            echo "Compiling for ${OS}/${ARCH}..."
+            CGO_ENABLED=0 GOOS=$OS GOARCH=$ARCH go build -ldflags="$LDFLAGS" -trimpath -o "$OUTPUT_DIR/$BIN_NAME" ./cmd/hop
+            
+            # Copy shell integration scripts into the package
+            cp -r shell "$OUTPUT_DIR/"
+            cp README.md "$OUTPUT_DIR/"
+            cp LICENSE "$OUTPUT_DIR/"
+
+            # Create archive
+            cd dist
+            if [ "$OS" = "windows" ]; then
+              zip -r "hoppr-${VERSION}-${OS}-${ARCH}.zip" "hoppr-${OS}-${ARCH}"
+            else
+              tar -czvf "hoppr-${VERSION}-${OS}-${ARCH}.tar.gz" "hoppr-${OS}-${ARCH}"
+            fi
+            cd ..
+          done
+
+          # Copy standalone installer scripts to dist
+          cp scripts/install.ps1 dist/
+          cp scripts/install.sh dist/
+
+          # Generate SHA256 checksums
+          cd dist
+          sha256sum hoppr-* > checksums.txt
+          cd ..
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.get_version.outputs.VERSION }}
+          name: Release ${{ steps.get_version.outputs.VERSION }}
+          draft: false
+          prerelease: false
+          files: |
+            dist/*.zip
+            dist/*.tar.gz
+            dist/checksums.txt
+            dist/install.ps1
+            dist/install.sh
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
