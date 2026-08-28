@@ -111,6 +111,34 @@ hop drop work
 - Use separate lists for `work`, `oss`, `learning`, `clients` to keep things tidy
 - `hop list` with no arguments gives you a full overview of everything saved
 
+## Shell Integration
+
+To jump directories directly using `hop <project>`, source the shell wrapper for your terminal:
+
+### Bash
+Add to `~/.bashrc`:
+```bash
+source /path/to/Hoppr/shell/hop.bash
+```
+
+### Zsh
+Add to `~/.zshrc`:
+```bash
+source /path/to/Hoppr/shell/hop.zsh
+```
+
+### Fish
+Add to `~/.config/fish/config.fish`:
+```fish
+source /path/to/Hoppr/shell/hop.fish
+```
+
+### PowerShell (Windows)
+Add to `$PROFILE`:
+```powershell
+. C:\path\to\Hoppr\shell\hop.ps1
+```
+
 ## License
 
 MIT License © HawkdotDev
