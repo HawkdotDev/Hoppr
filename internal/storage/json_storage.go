@@ -33,7 +33,7 @@ func NewJSONStorage(configDir string) (*JSONStorage, error) {
 		configDir = filepath.Join(home, ".hoppr")
 	}
 
-	if err := os.MkdirAll(configDir, 0755); err != nil {
+	if err := os.MkdirAll(configDir, 0700); err != nil {
 		return nil, fmt.Errorf("failed to create config directory %s: %w", configDir, err)
 	}
 
@@ -145,6 +145,8 @@ func (s *JSONStorage) saveConfigUnlocked(cfg *domain.Config) error {
 		return fmt.Errorf("failed to create temporary file: %w", err)
 	}
 	tmpName := tmpFile.Name()
+	// SEC-5: Restrict temp file permissions to owner-only
+	_ = os.Chmod(tmpName, 0600)
 	defer os.Remove(tmpName) // Cleanup if rename fails
 
 	if _, err := tmpFile.Write(data); err != nil {
@@ -162,10 +164,10 @@ func (s *JSONStorage) saveConfigUnlocked(cfg *domain.Config) error {
 		return fmt.Errorf("failed to close temp file: %w", err)
 	}
 
-	// Create backup of existing config before replacing
-	if _, err := os.Stat(s.configPath); err == nil {
+	// SEC-3: Backup the EXISTING config before replacing (not the new data)
+	if existingData, readErr := os.ReadFile(s.configPath); readErr == nil {
 		backupPath := s.configPath + ".bak"
-		_ = os.WriteFile(backupPath, data, 0644)
+		_ = os.WriteFile(backupPath, existingData, 0600)
 	}
 
 	// Atomically replace config file

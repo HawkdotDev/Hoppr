@@ -2,10 +2,28 @@
 # Add to $PROFILE: . /path/to/hop.ps1
 
 function hop {
-    param([string]$cmd, [string]$arg1, [string]$arg2)
-    $nonJumpCmds = @("add", "remove", "rm", "del", "delete", "list", "ls", "l", "create", "new", "drop", "rename", "mv", "setdefault", "default", "use", "import", "scan", "load", "doctor", "check", "diag", "help", "--help", "-h", "--version", "-v", "version")
+    # Collect all arguments as an array (avoids named-param / $args conflict)
+    $allArgs = $args
 
-    if ($args.Count -eq 1 -and $cmd -notin $nonJumpCmds) {
+    if ($allArgs.Count -eq 0) {
+        & hoppr
+        return
+    }
+
+    $cmd = $allArgs[0]
+    $nonJumpCmds = @(
+        "add", "remove", "rm", "del", "delete",
+        "list", "ls", "l",
+        "create", "new", "drop", "rename", "mv",
+        "setdefault", "default", "use",
+        "import", "scan", "load",
+        "doctor", "check", "diag",
+        "help", "--help", "-h",
+        "--version", "-v", "version"
+    )
+
+    # Single-argument invocation that is NOT a known command → treat as project jump
+    if ($allArgs.Count -eq 1 -and $cmd -notin $nonJumpCmds) {
         $target = & hoppr _get_path $cmd 2>$null
         if ($target -and (Test-Path $target)) {
             Set-Location $target
@@ -13,7 +31,8 @@ function hop {
         }
     }
 
-    & hoppr @args
+    # Otherwise, pass everything through to the hoppr binary
+    & hoppr @allArgs
 }
 
 # PowerShell Tab Completion
