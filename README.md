@@ -174,6 +174,20 @@ Add to `$PROFILE`:
 . C:\path\to\Hoppr\shell\hop.ps1
 ```
 
+## Uninstallation
+
+To cleanly remove Hoppr, binary files, and shell integrations:
+
+### Windows (PowerShell)
+```powershell
+irm https://raw.githubusercontent.com/HawkdotDev/Hoppr/main/scripts/uninstall.ps1 | iex
+```
+
+### macOS / Linux / WSL (Bash)
+```bash
+curl -fsSL https://raw.githubusercontent.com/HawkdotDev/Hoppr/main/scripts/uninstall.sh | bash
+```
+
 ## License
 
 MIT License © HawkdotDev
