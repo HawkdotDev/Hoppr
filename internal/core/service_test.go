@@ -9,7 +9,7 @@ import (
 )
 
 func TestProjectService_CaseInsensitiveGetPath(t *testing.T) {
-	store := storage.NewMemoryStorage()
+	store := storage.NewMemoryStorage(nil)
 	service := NewProjectService(store)
 	ctx := context.Background()
 
@@ -45,7 +45,7 @@ func TestProjectService_CaseInsensitiveGetPath(t *testing.T) {
 }
 
 func TestProjectService_ListLifecycle(t *testing.T) {
-	store := storage.NewMemoryStorage()
+	store := storage.NewMemoryStorage(nil)
 	service := NewProjectService(store)
 	ctx := context.Background()
 
