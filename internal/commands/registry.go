@@ -156,7 +156,7 @@ func (r *Registry) PrintVersion(w io.Writer) {
 	fmt.Fprintf(w, "%s %s %s (commit: %s, built: %s)\n",
 		ui.Violet(ui.IconZap),
 		ui.Bold("hop"),
-		ui.Cyan("v"+version.Version),
+		ui.Cyan(version.FormattedVersion()),
 		ui.Gray(version.Commit),
 		ui.Gray(version.BuildDate),
 	)

@@ -24,7 +24,7 @@ func main() {
 		fmt.Fprintf(os.Stdout, "%s %s %s (commit: %s, built: %s)\n",
 			ui.Violet(ui.IconZap),
 			ui.Bold("hop"),
-			ui.Cyan("v"+version.Version),
+			ui.Cyan(version.FormattedVersion()),
 			ui.Gray(version.Commit),
 			ui.Gray(version.BuildDate),
 		)

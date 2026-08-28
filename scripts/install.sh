@@ -262,16 +262,28 @@ fi
 
 # ── Done ───────────────────────────────────────────────────────────────────────
 echo ""
-echo "${GREEN}  ╔═══════════════════════════════════════╗${RESET}"
-echo "${GREEN}  ║     Hoppr installed successfully! 🎉   ║${RESET}"
-echo "${GREEN}  ╚═══════════════════════════════════════╝${RESET}"
+echo "${GREEN}  ╔═════════════════════════════════════════════════════════════╗${RESET}"
+echo "${GREEN}  ║               HOPPR WAS INSTALLED SUCCESSFULLY!             ║${RESET}"
+echo "${GREEN}  ╚═════════════════════════════════════════════════════════════╝${RESET}"
 echo ""
-echo "  Get started:"
-echo "${GRAY}    hop doctor            — verify installation health${RESET}"
-echo "${GRAY}    hop add .            — save current folder as a project${RESET}"
-echo "${GRAY}    hop list             — view all saved projects${RESET}"
-echo "${GRAY}    hop <project>        — jump to any saved project${RESET}"
+
+echo "  ${BOLD}Installation Summary:${RESET}"
+echo "    Version:       ${CYAN}${TAG}${RESET}"
+echo "    Location:      ${GRAY}${INSTALL_DIR}/${BIN_NAME}${RESET}"
+echo "    Shell Dir:     ${GRAY}${SHELL_DIR}${RESET}"
+echo ""
+
+echo "  ${BOLD}Self-Test Output:${RESET}"
+"${INSTALL_DIR}/${BIN_NAME}" --version
+echo ""
+
+echo "  ${YELLOW}Quick Start:${RESET}"
+echo "${GRAY}    hop doctor          - Check environment health${RESET}"
+echo "${GRAY}    hop add .           - Save current folder as a project${RESET}"
+echo "${GRAY}    hop list            - View all saved projects${RESET}"
+echo "${GRAY}    hop <project>       - Jump directly to any project${RESET}"
+echo "${GRAY}    hop update          - Self-update to future releases${RESET}"
 echo ""
 echo "${GRAY}  Restart your terminal or run 'source ~/.bashrc' to activate 'hop'.${RESET}"
-echo "${GRAY}  Docs: https://github.com/${REPO}${RESET}"
+echo "${GRAY}  Documentation: https://github.com/${REPO}${RESET}"
 echo ""
