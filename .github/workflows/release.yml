@@ -90,9 +90,10 @@ jobs:
           cp scripts/install.ps1 dist/
           cp scripts/install.sh dist/
 
-          # Generate SHA256 checksums
+          # Clean up intermediate directories and generate SHA256 checksums
           cd dist
-          sha256sum hoppr-* > checksums.txt
+          rm -rf hoppr-*/
+          sha256sum *.zip *.tar.gz > checksums.txt
           cd ..
 
       - name: Create GitHub Release
