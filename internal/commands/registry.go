@@ -84,9 +84,21 @@ func (r *Registry) Dispatch(ctx context.Context, args []string, out io.Writer, e
 		return cmd.Execute(ctx, cmdArgs, out, errOut)
 	}
 
-	ui.ErrorMsg(errOut, "Unknown command '%s'", cmdName)
-	fmt.Fprintln(errOut)
-	r.PrintUsage(errOut)
+	// Calculate visible candidates for fuzzy match
+	candidates := r.GetVisibleCommandNames()
+	for alias := range r.aliases {
+		if !strings.HasPrefix(alias, "_") {
+			candidates = append(candidates, alias)
+		}
+	}
+
+	suggestion := ui.FindClosestMatch(cmdName, candidates, 3)
+	if suggestion != "" {
+		ui.ErrorMsg(errOut, "Unknown command '%s'. Did you mean '%s'?", ui.Bold(cmdName), ui.Cyan(ui.Bold(suggestion)))
+	} else {
+		ui.ErrorMsg(errOut, "Unknown command '%s'", cmdName)
+	}
+	fmt.Fprintf(errOut, "\n  %s Run '%s' to see all available commands.\n\n", ui.Cyan("💡 Tip:"), ui.Cyan("hop --help"))
 	return domain.ExitUsage
 }
 

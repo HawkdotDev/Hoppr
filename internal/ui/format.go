@@ -71,6 +71,8 @@ func RenderProjectsTable(w io.Writer, listName string, projects map[string]strin
 		status := ""
 		if _, err := os.Stat(path); os.IsNotExist(err) {
 			status = " " + Red("[broken path]")
+		} else if gitBranch := GetGitBranch(path); gitBranch != "" {
+			status = " " + Sky(fmt.Sprintf("(git: %s)", gitBranch))
 		}
 
 		fmt.Fprintf(w, "    %s %s  %s %s%s\n",
