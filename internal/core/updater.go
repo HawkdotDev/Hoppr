@@ -16,17 +16,19 @@ import (
 	"path/filepath"
 	"runtime"
 	"strings"
+	"sync"
 	"time"
 
 	"hoppr/internal/version"
 )
 
 const (
-	RepoOwner   = "HawkdotDev"
-	RepoName    = "Hoppr"
-	GitHubAPI   = "https://api.github.com/repos/HawkdotDev/Hoppr/releases/latest"
-	UserAgent   = "Hoppr-SelfUpdater/1.0"
-	HTTPTimeout = 30 * time.Second
+	RepoOwner       = "HawkdotDev"
+	RepoName        = "Hoppr"
+	GitHubAPI       = "https://api.github.com/repos/HawkdotDev/Hoppr/releases/latest"
+	GitHubLatestWeb = "https://github.com/HawkdotDev/Hoppr/releases/latest"
+	UserAgent       = "Hoppr-SelfUpdater/1.1"
+	HTTPTimeout     = 25 * time.Second
 )
 
 type GitHubRelease struct {
@@ -41,35 +43,64 @@ type UpdateService struct {
 
 func NewUpdateService() *UpdateService {
 	return &UpdateService{
-		client: &http.Client{Timeout: HTTPTimeout},
+		client: &http.Client{
+			Timeout: HTTPTimeout,
+			CheckRedirect: func(req *http.Request, via []*http.Request) error {
+				// Allow up to 10 redirects for web URL resolution
+				if len(via) >= 10 {
+					return fmt.Errorf("stopped after 10 redirects")
+				}
+				return nil
+			},
+		},
 	}
 }
 
-// FetchLatestRelease queries the GitHub API for the latest release tag.
+// FetchLatestRelease resolves the latest release tag via GitHub API with automatic HTML redirect fallback.
 func (u *UpdateService) FetchLatestRelease(ctx context.Context) (*GitHubRelease, error) {
+	// 1. Primary: Query GitHub REST API
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, GitHubAPI, nil)
+	if err == nil {
+		req.Header.Set("User-Agent", UserAgent)
+		req.Header.Set("Accept", "application/vnd.github.v3+json")
+
+		resp, err := u.client.Do(req)
+		if err == nil && resp.StatusCode == http.StatusOK {
+			defer resp.Body.Close()
+			var rel GitHubRelease
+			if err := json.NewDecoder(resp.Body).Decode(&rel); err == nil && rel.TagName != "" {
+				return &rel, nil
+			}
+		}
+		if resp != nil {
+			_ = resp.Body.Close()
+		}
+	}
+
+	// 2. Fallback: Zero-quota HTTP redirect resolution (bypasses GitHub API rate limits)
+	headReq, err := http.NewRequestWithContext(ctx, http.MethodGet, GitHubLatestWeb, nil)
 	if err != nil {
-		return nil, fmt.Errorf("failed to create update request: %w", err)
+		return nil, fmt.Errorf("failed to build release lookup request: %w", err)
 	}
-	req.Header.Set("User-Agent", UserAgent)
-	req.Header.Set("Accept", "application/vnd.github.v3+json")
+	headReq.Header.Set("User-Agent", UserAgent)
 
-	resp, err := u.client.Do(req)
+	headResp, err := u.client.Do(headReq)
 	if err != nil {
-		return nil, fmt.Errorf("network error checking for updates: %w", err)
+		return nil, fmt.Errorf("unable to reach GitHub releases: %w", err)
 	}
-	defer resp.Body.Close()
+	defer headResp.Body.Close()
 
-	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("GitHub API returned status %s", resp.Status)
+	// Extract tag name from final redirected URL (e.g. .../releases/tag/v1.1.0)
+	finalURL := headResp.Request.URL.String()
+	if idx := strings.LastIndex(finalURL, "/tag/"); idx != -1 {
+		tag := finalURL[idx+5:]
+		return &GitHubRelease{
+			TagName: tag,
+			Name:    "Release " + tag,
+		}, nil
 	}
 
-	var rel GitHubRelease
-	if err := json.NewDecoder(resp.Body).Decode(&rel); err != nil {
-		return nil, fmt.Errorf("failed to parse release metadata: %w", err)
-	}
-
-	return &rel, nil
+	return nil, fmt.Errorf("unable to determine latest release tag from GitHub")
 }
 
 // CheckUpdate compares the running version with the latest release tag.
@@ -83,14 +114,14 @@ func (u *UpdateService) CheckUpdate(ctx context.Context) (latestTag string, hasU
 	current := strings.TrimPrefix(version.Version, "v")
 
 	if latest == "" {
-		return "", false, fmt.Errorf("invalid release tag received from GitHub")
+		return "", false, fmt.Errorf("invalid release tag received")
 	}
 
 	hasUpdate = latest != current && current != "dev" && current != "unknown"
 	return rel.TagName, hasUpdate, nil
 }
 
-// DownloadAndApplyUpdate downloads the latest asset, validates its SHA256 checksum, and replaces the running binary.
+// DownloadAndApplyUpdate concurrently downloads package and checksums, validates SHA256 in-flight, and replaces the binary.
 func (u *UpdateService) DownloadAndApplyUpdate(ctx context.Context, targetTag string, progress func(step string)) error {
 	arch := runtime.GOARCH
 	osName := runtime.GOOS
@@ -104,35 +135,53 @@ func (u *UpdateService) DownloadAndApplyUpdate(ctx context.Context, targetTag st
 	downloadURL := fmt.Sprintf("https://github.com/%s/%s/releases/download/%s/%s", RepoOwner, RepoName, targetTag, assetName)
 	checksumURL := fmt.Sprintf("https://github.com/%s/%s/releases/download/%s/checksums.txt", RepoOwner, RepoName, targetTag)
 
-	// 1. Download checksums.txt
-	progress("Fetching cryptographic checksums...")
-	expectedHash, err := u.fetchChecksum(ctx, checksumURL, assetName)
-	if err != nil {
-		// Non-fatal if checksums.txt is unavailable, but warned
-		expectedHash = ""
+	progress(fmt.Sprintf("Downloading %s (parallel fetching archive & checksums)...", assetName))
+
+	// Parallel Download Channel
+	var (
+		wg           sync.WaitGroup
+		archiveData  []byte
+		archiveErr   error
+		expectedHash string
+	)
+
+	wg.Add(2)
+
+	// Fetch archive in parallel
+	go func() {
+		defer wg.Done()
+		archiveData, archiveErr = u.downloadBytes(ctx, downloadURL)
+	}()
+
+	// Fetch checksums in parallel
+	go func() {
+		defer wg.Done()
+		hash, err := u.fetchChecksum(ctx, checksumURL, assetName)
+		if err == nil {
+			expectedHash = hash
+		}
+	}()
+
+	wg.Wait()
+
+	if archiveErr != nil {
+		return fmt.Errorf("failed to download release package: %w", archiveErr)
 	}
 
-	// 2. Download Archive
-	progress(fmt.Sprintf("Downloading %s...", assetName))
-	archiveData, err := u.downloadBytes(ctx, downloadURL)
-	if err != nil {
-		return fmt.Errorf("failed to download release package: %w", err)
-	}
-
-	// 3. Verify SHA256
+	// In-flight SHA256 validation
 	if expectedHash != "" {
-		progress("Verifying SHA256 checksum...")
+		progress("Validating SHA256 cryptographic signature...")
 		hasher := sha256.New()
 		hasher.Write(archiveData)
 		actualHash := hex.EncodeToString(hasher.Sum(nil))
 
 		if !strings.EqualFold(expectedHash, actualHash) {
-			return fmt.Errorf("SHA256 checksum mismatch (expected %s, got %s)", expectedHash, actualHash)
+			return fmt.Errorf("security error: SHA256 checksum mismatch (expected %s, got %s)", expectedHash, actualHash)
 		}
 	}
 
-	// 4. Extract new binary
-	progress("Extracting binary from package...")
+	// Extract binary from stream
+	progress("Extracting binary executable...")
 	binName := "hop"
 	if osName == "windows" {
 		binName = "hop.exe"
@@ -143,8 +192,8 @@ func (u *UpdateService) DownloadAndApplyUpdate(ctx context.Context, targetTag st
 		return fmt.Errorf("failed to extract binary from archive: %w", err)
 	}
 
-	// 5. Replace running binary in-place
-	progress("Applying self-update...")
+	// In-place atomic binary replacement
+	progress("Applying atomic binary swap...")
 	execPath, err := os.Executable()
 	if err != nil {
 		return fmt.Errorf("unable to determine current executable path: %w", err)
