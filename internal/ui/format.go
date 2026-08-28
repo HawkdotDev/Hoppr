@@ -68,10 +68,21 @@ func RenderProjectsTable(w io.Writer, listName string, projects map[string]strin
 		}
 
 		// Check if path exists on disk
+		expanded := path
+		if len(path) > 0 && path[0] == '~' {
+			if home, err := os.UserHomeDir(); err == nil {
+				if path == "~" {
+					expanded = home
+				} else if len(path) > 1 && (path[1] == '/' || path[1] == '\\') {
+					expanded = home + path[1:]
+				}
+			}
+		}
+
 		status := ""
-		if _, err := os.Stat(path); os.IsNotExist(err) {
+		if _, err := os.Stat(expanded); os.IsNotExist(err) {
 			status = " " + Red("[broken path]")
-		} else if gitBranch := GetGitBranch(path); gitBranch != "" {
+		} else if gitBranch := GetGitBranch(expanded); gitBranch != "" {
 			status = " " + Sky(fmt.Sprintf("(git: %s)", gitBranch))
 		}
 

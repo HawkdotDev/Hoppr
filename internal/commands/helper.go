@@ -89,7 +89,16 @@ func (c *CompleteCommand) Execute(ctx context.Context, args []string, out io.Wri
 		return domain.ExitFailure
 	}
 
-	candidates := make([]string, 0)
+	commands := []string{
+		"add", "remove", "rm", "del", "list", "ls",
+		"create", "new", "drop", "rename", "mv",
+		"setdefault", "default", "use", "import", "scan",
+		"doctor", "check", "--help", "--version",
+	}
+
+	candidates := make([]string, 0, len(commands)+len(lists)*4)
+	candidates = append(candidates, commands...)
+
 	for listName, projects := range lists {
 		candidates = append(candidates, listName)
 		for projName := range projects {
@@ -99,8 +108,13 @@ func (c *CompleteCommand) Execute(ctx context.Context, args []string, out io.Wri
 	slices.Sort(candidates)
 	candidates = slices.Compact(candidates)
 
+	prefix := ""
+	if len(args) > 0 {
+		prefix = strings.ToLower(args[0])
+	}
+
 	for _, cand := range candidates {
-		if len(args) == 0 || strings.HasPrefix(cand, args[0]) {
+		if prefix == "" || strings.HasPrefix(strings.ToLower(cand), prefix) {
 			fmt.Fprintln(out, cand)
 		}
 	}

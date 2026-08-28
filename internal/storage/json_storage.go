@@ -98,7 +98,16 @@ func (s *JSONStorage) loadConfigUnlocked() (*domain.Config, error) {
 	// Attempt to decode current schema
 	var cfg domain.Config
 	if err := json.Unmarshal(data, &cfg); err != nil {
-		// If current schema fails, check if backup exists or report corrupted JSON
+		// Self-healing: if current file is corrupted, attempt automatic recovery from .bak
+		backupPath := s.configPath + ".bak"
+		if backupData, bErr := os.ReadFile(backupPath); bErr == nil {
+			var backupCfg domain.Config
+			if bErr := json.Unmarshal(backupData, &backupCfg); bErr == nil {
+				// Successfully recovered from backup, persist it to main config
+				_ = s.saveConfigUnlocked(&backupCfg)
+				return &backupCfg, nil
+			}
+		}
 		return nil, fmt.Errorf("config file is corrupted (invalid JSON syntax): %w", err)
 	}
 

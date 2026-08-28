@@ -71,7 +71,8 @@ func (d *DoctorService) RunDiagnostics(ctx context.Context) ([]DiagnosticResult,
 	for listName, projects := range cfg.Lists {
 		for projName, path := range projects {
 			totalProjects++
-			if _, err := os.Stat(path); err != nil {
+			expanded := ExpandHome(path)
+			if _, err := os.Stat(expanded); err != nil {
 				missingProjects++
 				results = append(results, DiagnosticResult{
 					Title:   fmt.Sprintf("Project Path: [%s] %s", listName, projName),

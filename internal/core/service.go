@@ -99,18 +99,39 @@ func (s *ProjectService) GetPath(ctx context.Context, name, list string) (string
 		targetList = cfg.DefaultList
 	}
 
-	// 1. Try in target list
+	// 1. Try exact match in target list
 	if projects, ok := cfg.Lists[targetList]; ok {
 		if path, found := projects[name]; found {
-			return path, nil
+			return ExpandHome(path), nil
 		}
 	}
 
-	// 2. If list wasn't explicitly specified, search across all lists as fallback
+	// 2. Try exact match across all lists
 	if list == "" || list == "." {
 		for _, projects := range cfg.Lists {
 			if path, found := projects[name]; found {
-				return path, nil
+				return ExpandHome(path), nil
+			}
+		}
+	}
+
+	// 3. Case-insensitive fallback in target list
+	nameLower := strings.ToLower(name)
+	if projects, ok := cfg.Lists[targetList]; ok {
+		for projName, path := range projects {
+			if strings.ToLower(projName) == nameLower {
+				return ExpandHome(path), nil
+			}
+		}
+	}
+
+	// 4. Case-insensitive fallback across all lists
+	if list == "" || list == "." {
+		for _, projects := range cfg.Lists {
+			for projName, path := range projects {
+				if strings.ToLower(projName) == nameLower {
+					return ExpandHome(path), nil
+				}
 			}
 		}
 	}
