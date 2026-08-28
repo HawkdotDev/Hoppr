@@ -4,7 +4,7 @@ import "strings"
 
 var (
 	// Version is injected at build time via -ldflags
-	Version = "1.1.0"
+	Version = "1.2.0"
 	// Commit is injected at build time via -ldflags
 	Commit = "dev"
 	// BuildDate is injected at build time via -ldflags

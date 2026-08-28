@@ -65,7 +65,7 @@ try {
         $Tag = $Location.Substring($Location.LastIndexOf("/") + 1)
         $WebResp.Close()
     } catch {
-        $Tag = "v1.1.0"
+        $Tag = "v1.2.0"
     }
 }
 Write-Ok "Target version: $Tag"

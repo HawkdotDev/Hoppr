@@ -2,7 +2,7 @@
 
 # Binary output names
 BINARY_NAME=hop
-VERSION=1.1.0
+VERSION=1.2.0
 COMMIT=$(shell git rev-parse --short HEAD 2>/dev/null || echo "dev")
 BUILD_DATE=$(shell date -u +%Y-%m-%dT%H:%M:%SZ 2>/dev/null || echo "unknown")
 
