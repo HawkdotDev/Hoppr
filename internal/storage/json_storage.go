@@ -54,6 +54,8 @@ func (s *JSONStorage) Read(ctx context.Context) (*domain.Config, error) {
 	if err == nil {
 		if err := fl.RLock(); err == nil {
 			defer fl.Unlock()
+		} else {
+			_ = fl.Unlock()
 		}
 	}
 
@@ -66,10 +68,11 @@ func (s *JSONStorage) Update(ctx context.Context, mutate func(cfg *domain.Config
 	if err != nil {
 		return fmt.Errorf("failed to acquire storage lock: %w", err)
 	}
+	defer fl.Unlock()
+
 	if err := fl.Lock(); err != nil {
 		return fmt.Errorf("failed to obtain exclusive lock: %w", err)
 	}
-	defer fl.Unlock()
 
 	cfg, err := s.loadConfigUnlocked()
 	if err != nil {
