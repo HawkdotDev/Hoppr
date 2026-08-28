@@ -34,8 +34,20 @@ go install github.com/hawkdotdev/hoppr/cmd/hop@latest
 
 ---
 
-### Pre-Built Binaries
-Download the standalone executable directly for your OS from [GitHub Releases](https://github.com/HawkdotDev/Hoppr/releases).
+### Pre-Built Binaries & Architecture Guide
+
+If you prefer downloading binaries directly from [GitHub Releases](https://github.com/HawkdotDev/Hoppr/releases):
+
+| OS | Package | CPU / Device Compatibility |
+|---|---|---|
+| **Windows** | `hoppr-*-windows-amd64.zip` | Standard 64-bit Intel & AMD PCs (Most common) |
+| **Windows** | `hoppr-*-windows-arm64.zip` | ARM devices (Snapdragon X Elite, Surface Pro ARM) |
+| **macOS** | `hoppr-*-darwin-arm64.tar.gz` | Apple Silicon (M1 / M2 / M3 / M4) |
+| **macOS** | `hoppr-*-darwin-amd64.tar.gz` | Intel Macs |
+| **Linux** | `hoppr-*-linux-amd64.tar.gz` | 64-bit Intel / AMD Linux & WSL |
+| **Linux** | `hoppr-*-linux-arm64.tar.gz` | ARM64 Linux (Raspberry Pi 4/5, AWS Graviton) |
+
+*(Note: The 1-line installer automatically detects your CPU architecture and chooses the correct package).*
 
 Config is automatically initialized at `~/.hoppr/config.json` on first use.
 
