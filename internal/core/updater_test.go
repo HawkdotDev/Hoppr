@@ -1,8 +1,10 @@
 package core
 
 import (
+	"archive/tar"
 	"archive/zip"
 	"bytes"
+	"compress/gzip"
 	"context"
 	"os"
 	"path/filepath"
@@ -10,23 +12,18 @@ import (
 	"testing"
 )
 
-func TestUpdateService_ExtractBinary(t *testing.T) {
+func TestUpdateService_ExtractBinary_Zip(t *testing.T) {
 	service := NewUpdateService()
 
-	// Create test zip archive containing hop.exe
 	var buf bytes.Buffer
 	zw := zip.NewWriter(&buf)
 
-	binName := "hop"
-	if runtime.GOOS == "windows" {
-		binName = "hop.exe"
-	}
-
+	binName := "hop.exe"
 	w, err := zw.Create(binName)
 	if err != nil {
 		t.Fatalf("zip create error: %v", err)
 	}
-	expectedContent := []byte("binary payload mock data")
+	expectedContent := []byte("binary zip payload data")
 	if _, err := w.Write(expectedContent); err != nil {
 		t.Fatalf("zip write error: %v", err)
 	}
@@ -34,9 +31,47 @@ func TestUpdateService_ExtractBinary(t *testing.T) {
 		t.Fatalf("zip close error: %v", err)
 	}
 
-	extracted, err := service.extractBinary(buf.Bytes(), runtime.GOOS, binName)
+	extracted, err := service.extractBinary(buf.Bytes(), "windows", binName)
 	if err != nil {
-		t.Fatalf("extractBinary error: %v", err)
+		t.Fatalf("extractBinary windows error: %v", err)
+	}
+
+	if !bytes.Equal(extracted, expectedContent) {
+		t.Errorf("expected %q, got %q", string(expectedContent), string(extracted))
+	}
+}
+
+func TestUpdateService_ExtractBinary_TarGz(t *testing.T) {
+	service := NewUpdateService()
+
+	var buf bytes.Buffer
+	gw := gzip.NewWriter(&buf)
+	tw := tar.NewWriter(gw)
+
+	binName := "hop"
+	expectedContent := []byte("binary tar.gz payload data")
+	hdr := &tar.Header{
+		Name: binName,
+		Mode: 0755,
+		Size: int64(len(expectedContent)),
+	}
+
+	if err := tw.WriteHeader(hdr); err != nil {
+		t.Fatalf("tar write header error: %v", err)
+	}
+	if _, err := tw.Write(expectedContent); err != nil {
+		t.Fatalf("tar write error: %v", err)
+	}
+	if err := tw.Close(); err != nil {
+		t.Fatalf("tar close error: %v", err)
+	}
+	if err := gw.Close(); err != nil {
+		t.Fatalf("gzip close error: %v", err)
+	}
+
+	extracted, err := service.extractBinary(buf.Bytes(), "linux", binName)
+	if err != nil {
+		t.Fatalf("extractBinary linux error: %v", err)
 	}
 
 	if !bytes.Equal(extracted, expectedContent) {
