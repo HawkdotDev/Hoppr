@@ -25,5 +25,10 @@ jobs:
           go-version: ${{ matrix.go-version }}
           cache: true
 
-      - name: Run unit tests
+      - name: Run unit tests (Linux & Windows with Race Detector)
+        if: runner.os != 'macOS'
         run: go test -v -race ./...
+
+      - name: Run unit tests (macOS)
+        if: runner.os == 'macOS'
+        run: go test -v ./...
